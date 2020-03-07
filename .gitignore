@@ -1,0 +1,8 @@
+*conda_env*
+*venv*
+*__pycache__*
+*frames*
+*.txt
+*.idea*
+*.mp4*
+*videos*
