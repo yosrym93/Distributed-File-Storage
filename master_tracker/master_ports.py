@@ -24,7 +24,7 @@ def upload(df2, df3, machine_check):
         random_row = table.sample()
     else:
         machine_check = False
-    return machine_check, random_row
+    return random_row,machine_check
     
 def download(df, df2, df3, machine_check, file_name):
     table = df2.join(df3.set_index('Data Keeper ID'), on='Data Keeper ID')
@@ -40,14 +40,15 @@ def download(df, df2, df3, machine_check, file_name):
         random_row = table.sample()
     else:
         machine_check = False
-    return machine_check, random_row
+    return random_row,machine_check
+
 
 
 def start_client_ports(client_port, datahandler_port, ns, datakeepers_ip):
     print(f"Master client ports started, listening to clients on port {client_port}, "
           f"communicating with data handler on port {datahandler_port}..")
     context = zmq.Context()
-    client_socket  = context.socket(zmq.REP)
+    client_socket = context.socket(zmq.REP)
     client_socket.bind("tcp://*:" + client_port)
 
     datahandler_socket = context.socket(zmq.PUSH)
@@ -57,17 +58,18 @@ def start_client_ports(client_port, datahandler_port, ns, datakeepers_ip):
         machine_check = True
 
         if(UpDown == "0"):
-            random_row = upload(ns.df2, ns.df3, machine_check)
+            random_row,machine_check = upload(ns.df2, ns.df3, machine_check)
         else:
-            random_row = download(ns.df, ns.df2, ns.df3, machine_check, file_name)
+            random_row,machine_check = download(ns.df, ns.df2, ns.df3, machine_check, file_name)
 
         #check if there is an empty machine
         if(machine_check):
             datahandler_socket.send_pyobj((random_row['Data Keeper ID'], random_row['Port']))
             datakeeper_ip = datakeepers_ip[random_row['Data Keeper ID']]
             datakeeper_link = datakeeper_ip + ":" + random_row['Port']
-            client_socket.send(datakeeper_link)
+            client_socket.send_string(datakeeper_link)
             print("Data sent to datahandler and client")
         else:
             print("No empty machine :)")
-        time.sleep(1)
+            client_socket.send_string("")
+        #time.sleep(1)

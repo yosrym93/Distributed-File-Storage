@@ -13,12 +13,12 @@ still_alive_port = '5000'
 successfully_check_port = '10000'
 busy_check_port = '9000'
 client_port = 5500
-data_keepers_count = 3
+data_keepers_count = 2
 process_number = 3
 master_replicate_port = '5001'
-replica_factor = 2
-data_keepers_ip = ["192.168.1.107:"]
-client_ports_count = 3
+replica_factor = 1
+data_keepers_ip = ["192.168.43.120:"]
+client_ports_count = 1
 
 
 if __name__ == '__main__':

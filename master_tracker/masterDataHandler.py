@@ -12,10 +12,12 @@ def initialize_table(dataKeeprs, processNumber):
         for j in range(6000,6000+processNumber):
             temp.append(i)
             temp2.append(j)
-    portColoumn = pd.DataFrame({'Port': temp2})
-    idColoumn = pd.DataFrame({'Data Keeper ID': temp})
-    busyColoumn = pd.DataFrame({'Busy': len(temp)*[False]})
-    return portColoumn,idColoumn,busyColoumn
+    data = {
+        'Port': temp2,
+        'Data Keeper ID': temp,
+        'Busy': len(temp)*[False]
+    }
+    return data
 
 
 def start_master_data_handler(ns, successfulCheckPort, busyCheckPort, dataKeeprs, processNumber):
@@ -39,8 +41,7 @@ def start_master_data_handler(ns, successfulCheckPort, busyCheckPort, dataKeeprs
 
     # initilize table
     ns.df = pd.DataFrame(data)
-    ns.df2 = pd.DataFrame(data2)
-    ns.df3 = pd.DataFrame(data3)
+    ns.df3 = pd.DataFrame(initialize_table(dataKeeprs, processNumber))
 
     # Socket to talk to server
     context = zmq.Context()
@@ -57,11 +58,6 @@ def start_master_data_handler(ns, successfulCheckPort, busyCheckPort, dataKeeprs
     socket3.setsockopt(zmq.RCVTIMEO, 500)
 
     # Fill the table with data
-    portColoumn, idColoumn, busyColoumn = initialize_table(dataKeeprs, processNumber)
-    ns.df3.update(portColoumn)
-    ns.df3.update(idColoumn)
-    ns.df3.update(busyColoumn)
-
 
     while(True):
         

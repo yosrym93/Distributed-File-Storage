@@ -11,14 +11,18 @@ import multiprocessing.sharedctypes as sharedctypes
 import ctypes
 import signal
 
+timeout = False
+
 class TimeoutException(Exception):   # Custom exception class
     pass
 
 def timeout_handler(signum, frame):   # Custom signal handler
-    print(" 1 Ssecond had been Passed with no pulses from some machine")
-    raise TimeoutException
+    global timeout
+    timeout = True
 
 def whoIsAlive(ns,dataKeeprs,stillAlivePort):
+    time.sleep(2)
+    global timeout
     print(f"Master heartbeat job started, listening to data handlers on port {stillAlivePort}")
     stillAlivePort=int(stillAlivePort)
     dataKeeprs=int(dataKeeprs)
@@ -28,25 +32,29 @@ def whoIsAlive(ns,dataKeeprs,stillAlivePort):
     socket = context.socket(zmq.SUB)
     socket.subscribe('')
     socket.bind ("tcp://*:%s"% stillAlivePort)
-
     # Periodicly Check who is alive every 1 sec
+
+    signal.signal(signal.SIGALRM,timeout_handler)
+    aliveListState = [False] * dataKeeprs
+    ns.df2 = pd.DataFrame({'Data Keeper ID': range(0, dataKeeprs), 'Alive': aliveListState})
+    print(ns.df2)
     while True:
 
         # Check  who is alive
         aliveListState=[False]*dataKeeprs
         # Check who is alive from datakeeprs every 1 sec
-        signal.alarm(1)  
-        try:
-            for i in range(0,dataKeeprs):
-                temp=socket.recv_string()
+        signal.alarm(1)
+        while not timeout:
+            try:
+                temp=socket.recv_string(flags=zmq.NOBLOCK)
                 temp=int(temp)
-                aliveListState[temp]=True
-        except TimeoutException:
-             # continue the loop if i don't recieve the expected number of data keeprs pulses within 1 sec
-            continue
-        else:
-            # Reset the alarm
-            signal.alarm(0)
+                aliveListState[temp] = True
+            except zmq.error.Again:
+                continue
+        timeout = False
+        print(time.time())
         print("%d Data Keepers are alive " % sum(aliveListState))
-        updatedColoumn = pd.DataFrame({'Alive': aliveListState})
-        ns.df2.update(updatedColoumn)
+        #updatedColoumn = pd.Series(aliveListState,name = 'Alive',index=[2])
+        #ns.df2.update(updatedColoumn)
+        ns.df2['Alive'].update(pd.Series(aliveListState))
+        print(ns.df2)
