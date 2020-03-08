@@ -24,22 +24,23 @@ def upload(df2, df3, machine_check):
         random_row = table.sample()
     else:
         machine_check = False
-    return random_row
+    return machine_check, random_row
     
 def download(df, df2, df3, machine_check, file_name):
     table = df2.join(df3.set_index('Data Keeper ID'), on='Data Keeper ID')
     table = table.join(df.set_index('Data Keeper ID'), on='Data Keeper ID')
-    table = table[table['File Name'] == file_name]
+    different_files = table[table['File Name'] != file_name].index
     busy_ports = table[table['Busy'] == True].index
     dead_nodes = table[table['Alive'] == False].index
     table.drop(busy_ports, inplace = True)
     table.drop(dead_nodes, inplace = True)
+    table.drop(different_files, inplace = True)
     random_row = pd.DataFrame()
     if(not table.empty):
         random_row = table.sample()
     else:
         machine_check = False
-    return random_row
+    return machine_check, random_row
 
 
 def start_client_ports(client_port, datahandler_port, ns, datakeepers_ip):

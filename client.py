@@ -8,7 +8,7 @@ def master_connection(context, master_link, file_name, UpDown):
     master_socket.connect ("tcp://{link}".format(link = master_link))
     master_socket.send_pyobj((file_name, UpDown))
     #recieve port from master
-    datakeeper_link = master_socket.recv()
+    datakeeper_link = master_socket.recv_string()
     return datakeeper_link
 
 def datakeeper_connection(context, datakeeper_link):
@@ -32,6 +32,11 @@ def main():
     _, master_link, file_name, UpDown = sys.argv
     context = zmq.Context()
     datakeeper_link = master_connection(context, master_link, file_name, UpDown)
+
+    if not datakeeper_link:
+        print('No empty ports on the server')
+        return
+
     datakeeper_socket = datakeeper_connection(context, datakeeper_link)
 
     #send request to data keeper
