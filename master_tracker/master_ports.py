@@ -47,7 +47,7 @@ def download(df, df2, df3, machine_check, file_name):
         check = False
     return random_row
     
-def main(master_link, datahandler_port, ns):
+def start_client_ports(master_link, datahandler_port, ns):
     context = zmq.Context()
     client_socket, file_name, UpDown  = client_connection(context, master_link)
     datahandler_socket = datahandler_connection(context, datahandler_port)
