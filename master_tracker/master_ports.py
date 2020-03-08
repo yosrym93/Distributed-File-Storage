@@ -2,6 +2,7 @@ import zmq
 import sys
 import time
 import pickle
+import pandas as pd
 
 def client_connection(context, link):
     socket = context.socket(zmq.REP)
@@ -29,7 +30,7 @@ def upload(df2, df3, machine_check):
     if(not table.empty):
         random_row = table.sample()
     else:
-        check = False
+        machine_check = False
     return random_row
     
 def download(df, df2, df3, machine_check, file_name):
@@ -44,10 +45,10 @@ def download(df, df2, df3, machine_check, file_name):
     if(not table.empty):
         random_row = table.sample()
     else:
-        check = False
+        machine_check = False
     return random_row
     
-def main(master_link, datahandler_port, ns):
+def main(master_link, datahandler_port, ns, datakeepers_ip):
     context = zmq.Context()
     client_socket, file_name, UpDown  = client_connection(context, master_link)
     datahandler_socket = datahandler_connection(context, datahandler_port)
@@ -66,8 +67,9 @@ def main(master_link, datahandler_port, ns):
     #check if there is an empty machine
     if(machine_check):
         datahandler_socket.send_pyobj((random_row['Data Keeper ID'], random_row['Port']))
-        #########TO BE UPDATED: IP
-        client_socket.send(random_row['Port'])
+        datakeeper_ip = datakeepers_ip[random_row['Data Keeper ID']]
+        datakeeper_link = datakeeper_ip + ":" + random_row['Port']
+        client_socket.send(datakeeper_link)
         print("Data sent to datahandler and client")
     else:
         print("No empty machine :)")

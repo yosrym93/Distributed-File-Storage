@@ -31,6 +31,7 @@ if __name__ == "__main__":
     ClientPort=str(sys.argv[4])
     dataKeeprs=int(sys.argv[5])
     processNumber=int(sys.argv[6])
+    dataKeeprsIp = sys.argv[7:]
 
     mgr = Manager()
     ns = mgr.Namespace()
@@ -80,7 +81,7 @@ if __name__ == "__main__":
     replicaProcess.start()
 
     # Creating Ports to Communicate
-    masterPortProcess=Process(target=main, args=("192.168.1.107:"+ClientPort,busyCheckPort, ns))
+    masterPortProcess=Process(target=main, args=("192.168.1.107:"+ClientPort,busyCheckPort, ns, dataKeeprsIp))
     masterPortProcess.start()
 
     # Fill the table with data
