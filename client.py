@@ -1,8 +1,6 @@
-#!/usr/bin/python3
 import zmq
 import sys
 import time
-import cv2
 import pickle
 
 def master_connection(context, master_link):
