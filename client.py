@@ -8,9 +8,9 @@ import pickle
 def master_connection(context, master_link):
     master_socket = context.socket(zmq.REQ)
     master_socket.connect ("tcp://{link}".format(link = master_link))
-    socket.send_pyobj((file_name, UpDown))
+    master_socket.send_pyobj((file_name, UpDown))
     #recieve port from master
-    datakeeper_link = socket.recv()
+    datakeeper_link = master_socket.recv()
     return datakeeper_link
 
 def datakeeper_connection(context, datakeeper_link):
