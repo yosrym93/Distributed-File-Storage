@@ -19,7 +19,7 @@ def timeout_handler(signum, frame):   # Custom signal handler
     raise TimeoutException
 
 def whoIsAlive(ns,dataKeeprs,stillAlivePort):
-    
+    print(f"Master heartbeat job started, listening to data handlers on port {stillAlivePort}")
     stillAlivePort=int(stillAlivePort)
     dataKeeprs=int(dataKeeprs)
 

@@ -18,8 +18,8 @@ def initialize_table(dataKeeprs, processNumber):
     return portColoumn,idColoumn,busyColoumn
 
 
-def start_master_data_handler(ns,successfulCheckPort,busyCheckPort,dataKeeprs,processNumber):
-
+def start_master_data_handler(ns, successfulCheckPort, busyCheckPort, dataKeeprs, processNumber):
+    print(f"Master data handler started, listening to busy checks on port {busyCheckPort}")
     # Create Data Frames
     data = {
         'Data Keeper ID': [],

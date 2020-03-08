@@ -1,22 +1,14 @@
 import zmq
-import sys
 import pickle
 import sched
 import time
 import numpy as np
-from multiprocessing import *
-import multiprocessing.sharedctypes as sharedctypes
-import ctypes
 
 
 def replica(s, ns, replica_factor, replica_socket_to_keepers):
-    # Get shared lookup tables
-    df = ns.df
-    df2 = ns.df2
-
     # Get a table with column values data keeper id, filename and alive status
     print("Replica function started ....")
-    merged_table = df.join(df2.set_index('Data Keeper ID'), on='Data Keeper ID')
+    merged_table = ns.df.join(ns.df2.set_index('Data Keeper ID'), on='Data Keeper ID')
     # Get names of indexes for which column Alive is False
     index_names = merged_table[merged_table['Alive'] == False].index
     # Delete these row indexes from dataFrame
@@ -25,9 +17,9 @@ def replica(s, ns, replica_factor, replica_socket_to_keepers):
     unique_files = merged_table['File Name'].unique()
     # Get alive data keepers
     # Get names of indexes for which column Alive is False
-    index_names = df2[df2['Alive'] == False].index
+    index_names = ns.df2[ns.df2['Alive'] == False].index
     # Delete these row indexes from dataFrame
-    alive_keepers = df2
+    alive_keepers = ns.df2
     alive_keepers.drop(index_names, inplace=True)
     # Convert alive IDs to numpy array
     alive = alive_keepers['Data Keeper ID']
@@ -59,6 +51,7 @@ def replica(s, ns, replica_factor, replica_socket_to_keepers):
 
 # Start function 
 def replica_start(ns, port_replica, replica_factor):
+    print(f"Master replicate job started, sending jobs to data keepers using port {port_replica}")
     # Setup a socket between master and data keepers
     context = zmq.Context()
     # local ip of the master

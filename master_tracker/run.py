@@ -1,24 +1,24 @@
 import subprocess
 import os
 import signal
-import pandas as pd
 from multiprocessing import *
-from .replica import replica_start
-from .master_ports import start_client_ports
-from .heartBeat import whoIsAlive
+from replica import replica_start
+from master_ports import start_client_ports
+from heartBeat import whoIsAlive
+from masterDataHandler import start_master_data_handler
 
 
 # Master parameters
 still_alive_port = '5000'
 successfully_check_port = '10000'
-busy_check_port = ''
+busy_check_port = '9000'
 client_port = 5500
-data_keepers = int
-process_number = int
+data_keepers_count = 3
+process_number = 3
 master_replicate_port = '5001'
 replica_factor = 2
-data_keepers_ip = []
-master_client_ports_count = int
+data_keepers_ip = ["192.168.1.107:"]
+client_ports_count = 3
 
 
 if __name__ == '__main__':
@@ -26,12 +26,12 @@ if __name__ == '__main__':
     ns = mgr.Namespace()
 
     # Create Master data handler process
-    subprocess.Popen(
-        ['python', 'masterDataHandler.py', ns, successfully_check_port, busy_check_port, data_keepers, process_number]
-    )
+    data_handler = Process(target=start_master_data_handler,
+                           args=(ns, successfully_check_port, busy_check_port, data_keepers_count, process_number))
+    data_handler.start()
 
     # Creating Who Is Alive Process
-    whoIsAliveProcess = Process(target=whoIsAlive, args=(ns, str(data_keepers), str(still_alive_port)))
+    whoIsAliveProcess = Process(target=whoIsAlive, args=(ns, str(data_keepers_count), str(still_alive_port)))
     whoIsAliveProcess.start()
 
     # Creating Replica Process
@@ -39,9 +39,8 @@ if __name__ == '__main__':
     replicaProcess.start()
 
     # Creating Ports to Communicate
-    for i in range(master_client_ports_count):
-        masterPortProcess = Process(target=start_client_ports, args=("192.168.1.107:" + str(client_port+i),
-                                                                     busy_check_port, ns))
+    for port in range(client_port, client_port + client_ports_count):
+        masterPortProcess = Process(target=start_client_ports, args=(str(port), busy_check_port, ns, data_keepers_ip))
         masterPortProcess.start()
 
 
