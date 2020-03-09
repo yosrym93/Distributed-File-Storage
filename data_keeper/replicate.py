@@ -18,7 +18,7 @@ def init_sockets(master_ip, master_replicate_port, local_replicate_port, master_
 
 
 def start_replicate_job(my_id, data_keepers_replicate_addresses, master_replicate_socket,
-                        videos_dir, send_socket, receive_socket, master_notify_port):
+                        videos_dir, send_socket, receive_socket, master_notify_socket):
     while True:
         replicate_request = pickle.loads(master_replicate_socket.recv())
         print('Replicate job requested.')
@@ -32,7 +32,8 @@ def start_replicate_job(my_id, data_keepers_replicate_addresses, master_replicat
                 'file_name': replicate_request['file_name'],
                 'id': my_id,
             }
-            master_notify_port.send(pickle.dumps(status))
+            master_notify_socket.send(pickle.dumps(status))
+            print('Notified the master of the replication job.')
 
 
 def send_video(file_name, to, data_keepers_replicate_addresses, socket, videos_dir):
@@ -78,7 +79,7 @@ def main():
     master_replicate_socket, receive_socket, send_socket, master_notify_socket = \
         init_sockets(master_ip, master_replicate_port, local_replicate_port, master_notify_port)
     start_replicate_job(my_id, data_keepers_replicate_addresses, master_replicate_socket,
-                        videos_dir, send_socket, receive_socket, master_notify_port)
+                        videos_dir, send_socket, receive_socket, master_notify_socket)
 
 
 if __name__ == '__main__':
