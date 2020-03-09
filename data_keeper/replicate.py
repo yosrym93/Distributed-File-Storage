@@ -32,7 +32,7 @@ def send_video(file_name, to, data_keepers_replicate_addresses, socket, videos_d
     with open(path, 'rb') as video_file:
         video_data = video_file.read()
     for data_keeper_id in to:
-        address = 'tcp://' + data_keepers_replicate_addresses[data_keeper_id]
+        address = 'tcp://' + data_keepers_replicate_addresses[int(data_keeper_id)]
         socket.connect(address)
         socket.send(pickle.dumps(video_data))
         socket.close()
