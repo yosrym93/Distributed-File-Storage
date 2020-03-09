@@ -13,6 +13,7 @@ master_file_transfer_port = '10000'
 file_transfer_ports_count = 3  # Integer
 file_transfer_ports_start = 6000  # Integer
 replicate_port = '7000'
+master_replicate_notify_port = '8000'
 data_keepers_ips = [
     '192.168.43.120',
     '192.168.43.65'
@@ -26,8 +27,8 @@ if __name__ == '__main__':
 
     # Create replicate process
     subprocess.Popen(
-        ['python', 'replicate.py', id, master_ip, master_replicate_port, replicate_port, videos_dir, data_keepers_count,
-         *data_keepers_replicate_addresses])
+        ['python', 'replicate.py', id, master_ip, master_replicate_port, replicate_port, master_replicate_notify_port,
+         videos_dir, data_keepers_count, *data_keepers_replicate_addresses])
 
     # Delete videos directory if it exists
     try:
