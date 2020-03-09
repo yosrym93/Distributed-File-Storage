@@ -2,8 +2,6 @@ import zmq
 import pickle
 import sys
 
-videos_dir = '../videos/'
-
 
 def init_sockets(master_ip, master_replicate_port, local_replicate_port):
     context = zmq.Context.instance()
@@ -15,18 +13,20 @@ def init_sockets(master_ip, master_replicate_port, local_replicate_port):
     return master_replicate_socket, receive_socket, send_socket
 
 
-def start_replicate_job(my_id, data_keepers_replicate_addresses, master_replicate_socket, send_socket, receive_socket):
+def start_replicate_job(my_id, data_keepers_replicate_addresses, master_replicate_socket,
+                        videos_dir, send_socket, receive_socket):
     while True:
         replicate_request = pickle.loads(master_replicate_socket.recv())
         if my_id == replicate_request['from']:
             send_video(replicate_request['file_name'], replicate_request['to'],
-                       data_keepers_replicate_addresses, send_socket)
+                       data_keepers_replicate_addresses, send_socket, videos_dir)
         elif my_id in replicate_request['to']:
-            receive_video(replicate_request['file_name'], receive_socket)
+            receive_video(replicate_request['file_name'], receive_socket, videos_dir)
 
 
-def send_video(file_name, to, data_keepers_replicate_addresses, socket):
-    path = videos_dir + file_name
+def send_video(file_name, to, data_keepers_replicate_addresses, socket, videos_dir):
+    print('Starting replicate job, sending video..')
+    path = videos_dir + '/' + file_name
     with open(path, 'rb') as video_file:
         video_data = video_file.read()
     for data_keeper_id in to:
@@ -34,21 +34,24 @@ def send_video(file_name, to, data_keepers_replicate_addresses, socket):
         socket.connect(address)
         socket.send(pickle.dumps(video_data))
         socket.close()
+    print('Video sent.')
 
 
-def receive_video(file_name, socket):
+def receive_video(file_name, socket, videos_dir):
+    print('Starting replicate job, receiving video..')
     video_data = pickle.loads(socket.recv())
-    path = videos_dir + file_name
+    path = videos_dir + '/' + file_name
     with open(path, 'wb') as video_file:
         video_file.write(video_data)
+    print('Video received.')
 
 
 def main():
-    if len(sys.argv) < 6:
-        print('Wrong number of arguments, expected 5')
+    if len(sys.argv) < 7:
+        print('Wrong number of arguments, expected 6')
         sys.exit()
-    _, my_id, master_ip, master_replicate_port, local_replicate_port, data_keepers_count = sys.argv[:6]
-    if len(sys.argv[6:]) < int(data_keepers_count):
+    _, my_id, master_ip, master_replicate_port, local_replicate_port, videos_dir, data_keepers_count = sys.argv[:6]
+    if len(sys.argv[7:]) < int(data_keepers_count):
         print('Number of data keepers and addresses provided do not match.')
         sys.exit()
     print('Replicate process started, listening to master replicate job at tcp://{}:{}, receiving on port {}'
@@ -56,7 +59,8 @@ def main():
     data_keepers_replicate_addresses = sys.argv[6:]
     master_replicate_socket, receive_socket, send_socket = \
         init_sockets(master_ip, master_replicate_port, local_replicate_port)
-    start_replicate_job(my_id, data_keepers_replicate_addresses, master_replicate_socket, send_socket, receive_socket)
+    start_replicate_job(my_id, data_keepers_replicate_addresses, master_replicate_socket,
+                        videos_dir, send_socket, receive_socket)
 
 
 if __name__ == '__main__':

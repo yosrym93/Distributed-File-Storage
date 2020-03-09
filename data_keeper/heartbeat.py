@@ -13,7 +13,7 @@ def init_socket(master_ip, master_heartbeat_port):
 
 def send_heartbeat(scheduler, my_id, master_heartbeat_socket):
     master_heartbeat_socket.send_string(my_id)
-    print('Heartbeat sent with id {}'.format(my_id))
+    # print('Heartbeat sent with id {}'.format(my_id))
     scheduler.enter(1, 0, send_heartbeat, argument=(scheduler, my_id, master_heartbeat_socket))
 
 
