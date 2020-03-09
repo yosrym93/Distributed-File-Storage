@@ -64,17 +64,17 @@ def receive_video(file_name, socket, videos_dir):
 
 
 def main():
-    if len(sys.argv) < 7:
-        print('Wrong number of arguments, expected 6')
+    if len(sys.argv) < 8:
+        print('Wrong number of arguments, expected 7')
         sys.exit()
     _, my_id, master_ip, master_replicate_port, local_replicate_port, master_notify_port, \
-        videos_dir, data_keepers_count = sys.argv[:7]
-    if len(sys.argv[7:]) < int(data_keepers_count):
+        videos_dir, data_keepers_count = sys.argv[:8]
+    if len(sys.argv[8:]) < int(data_keepers_count):
         print('Number of data keepers and addresses provided do not match.')
         sys.exit()
     print('Replicate process started, listening to master replicate job at tcp://{}:{}, receiving on port {}'
           .format(master_ip, master_replicate_port, local_replicate_port))
-    data_keepers_replicate_addresses = sys.argv[7:]
+    data_keepers_replicate_addresses = sys.argv[8:]
     master_replicate_socket, receive_socket, send_socket, master_notify_socket = \
         init_sockets(master_ip, master_replicate_port, local_replicate_port, master_notify_port)
     start_replicate_job(my_id, data_keepers_replicate_addresses, master_replicate_socket,
