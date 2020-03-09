@@ -5,19 +5,18 @@ import shutil
 
 videos_dir = 'videos'
 id = '0'
-data_keepers_count = '1'
-master_ip = '192.168.1.107'
+data_keepers_count = '2'
+master_ip = '192.168.43.148'
 master_replicate_port = '5001'
 master_heartbeat_port = '5000'
 master_file_transfer_port = '10000'
 file_transfer_ports_count = 3  # Integer
 file_transfer_ports_start = 6000  # Integer
 replicate_port = '7000'
+master_replicate_notify_port = '8000'
 data_keepers_ips = [
-    '127.0.0.1',
-    '127.0.0.1',
-    '127.0.0.1',
-    '127.0.0.1'
+    '192.168.43.120',
+    '192.168.43.65'
 ]
 
 if __name__ == '__main__':
@@ -28,8 +27,8 @@ if __name__ == '__main__':
 
     # Create replicate process
     subprocess.Popen(
-        ['python', 'replicate.py', id, master_ip, master_replicate_port, replicate_port, data_keepers_count,
-         *data_keepers_replicate_addresses])
+        ['python', 'replicate.py', id, master_ip, master_replicate_port, replicate_port, master_replicate_notify_port,
+         videos_dir, data_keepers_count, *data_keepers_replicate_addresses])
 
     # Delete videos directory if it exists
     try:

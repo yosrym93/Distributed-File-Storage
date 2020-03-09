@@ -17,7 +17,7 @@ data_keepers_count = 2
 process_number = 3
 master_replicate_port = '5001'
 replica_factor = 1
-data_keepers_ip = ["192.168.43.120:"]
+data_keepers_ip = ["192.168.43.120"]
 client_ports_count = 1
 
 

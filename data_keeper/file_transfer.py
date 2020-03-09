@@ -20,7 +20,7 @@ def upload_video(socket, file_name, videos_dir):
     print('Uploading video..')
     try:
         video_data = pickle.loads(socket.recv())
-        path = videos_dir + file_name
+        path = videos_dir + '/' + file_name
         with open(path, 'wb') as video_file:
             video_file.write(video_data)
         success = True
@@ -33,7 +33,7 @@ def upload_video(socket, file_name, videos_dir):
 
 def download_video(socket, file_name, videos_dir):
     print('Downloading video..')
-    path = videos_dir + file_name
+    path = videos_dir + '/' + file_name
     with open(path, 'rb') as video_file:
         video_data = video_file.read()
     socket.send(pickle.dumps(video_data))
