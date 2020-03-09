@@ -21,7 +21,6 @@ def timeout_handler(signum, frame):   # Custom signal handler
     timeout = True
 
 def whoIsAlive(ns,dataKeeprs,stillAlivePort):
-    time.sleep(2)
     global timeout
     print(f"Master heartbeat job started, listening to data handlers on port {stillAlivePort}")
     stillAlivePort=int(stillAlivePort)
@@ -36,7 +35,7 @@ def whoIsAlive(ns,dataKeeprs,stillAlivePort):
 
     signal.signal(signal.SIGALRM,timeout_handler)
     aliveListState = [False] * dataKeeprs
-    ns.df2 = pd.DataFrame({'Data Keeper ID': range(0, dataKeeprs), 'Alive': aliveListState})
+    ns.df2 = pd.DataFrame({'Data Keeper ID': [str(i) for i in range(0, dataKeeprs)], 'Alive': aliveListState})
     while True:
         # Check  who is alive
         aliveListState = [False]*dataKeeprs
@@ -50,7 +49,6 @@ def whoIsAlive(ns,dataKeeprs,stillAlivePort):
             except zmq.error.Again:
                 continue
         timeout = False
-        print(time.time())
         print("%d Data Keepers are alive " % sum(aliveListState))
         df = ns.df2
         df.update({'Alive': aliveListState})

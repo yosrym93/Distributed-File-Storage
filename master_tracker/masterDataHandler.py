@@ -10,7 +10,7 @@ def initialize_table(dataKeeprs, processNumber):
     temp2=[]
     for i in range(0,dataKeeprs):
         for j in range(6000,6000+processNumber):
-            temp.append(i)
+            temp.append(str(i))
             temp2.append(j)
     data = {
         'Port': temp2,
@@ -67,7 +67,7 @@ def start_master_data_handler(ns, successfulCheckPort, busyCheckPort, dataKeeprs
             flag=stat['success']
             if flag:
                 df = ns.df
-                df.append({'Data Keeper ID':stat['id'],'File Name':stat['file_name']})
+                df = df.append({'Data Keeper ID':stat['id'],'File Name':stat['file_name']},ignore_index=True)
                 ns.df = df
                 index_name=ns.df3[(ns.df3['Data Keeper ID']==stat['id'])& (ns.df3['Port']==stat['port'])].index
                 df = ns.df3
@@ -81,8 +81,8 @@ def start_master_data_handler(ns, successfulCheckPort, busyCheckPort, dataKeeprs
 
         # Check Busy Ports
         try:
-            busyFlag=socket2.recv_pyobj()
-            index_name=ns.df3[(ns.df3['Data Keeper ID']==stat['id'])& (ns.df3['Port']==stat['port'])].index
+            busyFlag=socket3.recv_pyobj()
+            index_name=ns.df3[(ns.df3['Data Keeper ID']==busyFlag[0])& (ns.df3['Port']==busyFlag[1])].index
             df = ns.df3
             df.at[index_name,'Busy']=False
             ns.df3 = df
