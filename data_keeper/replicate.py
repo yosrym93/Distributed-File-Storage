@@ -50,7 +50,7 @@ def main():
     if len(sys.argv) < 7:
         print('Wrong number of arguments, expected 6')
         sys.exit()
-    _, my_id, master_ip, master_replicate_port, local_replicate_port, videos_dir, data_keepers_count = sys.argv[:6]
+    _, my_id, master_ip, master_replicate_port, local_replicate_port, videos_dir, data_keepers_count = sys.argv[:7]
     if len(sys.argv[7:]) < int(data_keepers_count):
         print('Number of data keepers and addresses provided do not match.')
         sys.exit()
