@@ -6,7 +6,7 @@ import shutil
 videos_dir = 'videos'
 id = '0'
 data_keepers_count = '1'
-master_ip = '192.168.43.65'
+master_ip = '192.168.43.148'
 master_replicate_port = '5001'
 master_heartbeat_port = '5000'
 master_file_transfer_port = '10000'

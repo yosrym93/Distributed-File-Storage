@@ -87,5 +87,5 @@ def start_master_data_handler(ns, successfulCheckPort, busyCheckPort, dataKeeprs
             df.at[index_name,'Busy']=False
             ns.df3 = df
             print("Recieve ",busyFlag[0],busyFlag[1])
-        except  zmq.error.Again:
+        except zmq.error.Again:
             pass

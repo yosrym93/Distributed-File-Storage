@@ -64,9 +64,9 @@ def start_client_ports(client_port, datahandler_port, ns, datakeepers_ip):
 
         #check if there is an empty machine
         if(machine_check):
-            datahandler_socket.send_pyobj((random_row['Data Keeper ID'], random_row['Port']))
-            datakeeper_ip = datakeepers_ip[random_row['Data Keeper ID']]
-            datakeeper_link = datakeeper_ip + ":" + random_row['Port']
+            datahandler_socket.send_pyobj((random_row['Data Keeper ID'].item(), random_row['Port'].item()))
+            datakeeper_ip = datakeepers_ip[random_row['Data Keeper ID'].item()]
+            datakeeper_link = datakeeper_ip + ":" + str(random_row['Port'].item())
             client_socket.send_string(datakeeper_link)
             print("Data sent to datahandler and client")
         else:
