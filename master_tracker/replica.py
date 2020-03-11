@@ -7,7 +7,7 @@ import numpy as np
 
 def replica(s, ns, replica_factor, replica_socket_to_keepers):
     # Get a table with column values data keeper id, filename and alive status
-    #print("Replica function started ....")
+    print("Replica function started ....")
     merged_table = ns.df.join(ns.df2.set_index('Data Keeper ID'), on='Data Keeper ID')
     # Get names of indexes for which column Alive is False
     index_names = merged_table[merged_table['Alive'] == False].index
@@ -24,8 +24,15 @@ def replica(s, ns, replica_factor, replica_socket_to_keepers):
     # Convert alive IDs to numpy array
     alive = alive_keepers['Data Keeper ID']
     alive = np.array(alive)
+<<<<<<< Updated upstream
     unique_files = unique_files.tolist()
     for file in unique_files:
+=======
+
+    print(unique_files)
+    print(unique_files.shape)
+    for i in range(len(unique_files)):
+>>>>>>> Stashed changes
         # Get unique file occurrences in keepers
         file_occurrences = merged_table[merged_table['File Name'] == file]
         # Count the number of replicas
