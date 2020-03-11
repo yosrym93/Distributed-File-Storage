@@ -1,7 +1,7 @@
 import zmq
 import sys
-import time
 import pickle
+import random
 
 def master_connection(context, master_link, file_name, UpDown):
     master_socket = context.socket(zmq.REQ)
@@ -31,18 +31,18 @@ def download(datakeeper_socket, file_name):
     return
     
 def main():
-    _, master_link, file_name, UpDown = sys.argv
+    _, master_ip, master_port, ports_count, file_name, UpDown = sys.argv
     context = zmq.Context()
+    master_port = random.randrange(master_port, master_port + ports_count)
+    master_link = master_ip + ":" + master_port;
     datakeeper_link = master_connection(context, master_link, file_name, UpDown)
 
     if not datakeeper_link:
         print('No empty ports on the server')
         return
-
     datakeeper_socket = datakeeper_connection(context, datakeeper_link)
-
     #send request to data keeper
-    datakeeper_socket.send(pickle.dumps((file_name,UpDown)))
+    datakeeper_socket.send(pickle.dumps((file_name, UpDown)))
     if(UpDown == "0"):
         upload(datakeeper_socket, file_name)
     else:
