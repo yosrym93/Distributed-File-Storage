@@ -31,9 +31,7 @@ def replica(s, ns, replica_factor, replica_socket_to_keepers):
         # Count the number of replicas
         count = file_occurrences.shape[0]
         # Check the number of replica is smaller than replica factor to replicate it
-        print("replica before Start")
         if count < replica_factor:
-            print("replica Start")
             # Get keepers IDs that the have the file and convert it to numpy array
             occupied = np.array(file_occurrences['Data Keeper ID'])
             # Get free IDs that can replicate the file
