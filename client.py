@@ -33,8 +33,8 @@ def download(datakeeper_socket, file_name):
 def main():
     _, master_ip, master_port, ports_count, file_name, UpDown = sys.argv
     context = zmq.Context()
-    master_port = random.randrange(master_port, master_port + ports_count)
-    master_link = master_ip + ":" + master_port;
+    master_port = random.randrange(int(master_port), int(master_port) + int(ports_count))
+    master_link = master_ip + ":" + str(master_port)
     datakeeper_link = master_connection(context, master_link, file_name, UpDown)
 
     if not datakeeper_link:
