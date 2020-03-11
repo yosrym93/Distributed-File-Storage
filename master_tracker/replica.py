@@ -38,16 +38,18 @@ def replica(s, ns, replica_factor, replica_socket_to_keepers):
             occupied = np.array(file_occurrences['Data Keeper ID'])
             # Get free IDs that can replicate the file
             free = np.array(list(filter(lambda x: x not in occupied, alive)))
-            print(free)
-            # Calculate the number of keepers we need to send to them
-            needed_to_be_sent = replica_factor - count
-            # Randomize the IDs
-            receiver = list(np.random.choice(free, needed_to_be_sent))
-            # Send from any source
-            sender = occupied[0]
-            message = {'from': sender, 'to': receiver, 'file_name': merged_table.iloc[i]['File Name']}
-            replica_socket_to_keepers.send(pickle.dumps(message))
-    #print('Replica function ended .....')
+            # Check if there is machines to replicate.
+            if free.size == 0:
+                print("No available machines to replicate aborting  ..")
+            else:
+                # Calculate the number of keepers we need to send to them
+                needed_to_be_sent = replica_factor - count
+                # Randomize the IDs
+                receiver = list(np.random.choice(free, needed_to_be_sent))
+                # Send from any source
+                sender = occupied[0]
+                message = {'from': sender, 'to': receiver, 'file_name': merged_table.iloc[i]['File Name']}
+                replica_socket_to_keepers.send(pickle.dumps(message))
     # Run scheduler after another 5 seconds
     s.enter(5, 0, replica, argument=(s, ns, replica_factor,replica_socket_to_keepers))
 
