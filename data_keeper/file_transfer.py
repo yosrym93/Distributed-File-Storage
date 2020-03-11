@@ -10,7 +10,7 @@ def init_sockets(master_ip, master_file_transfer_port, file_transfer_port):
     context = zmq.Context.instance()
     file_transfer_socket = context.socket(zmq.PAIR)
     file_transfer_socket.bind('tcp://*:{}'.format(file_transfer_port))
-    file_transfer_socket.RCVTIMEO = 10000
+    # file_transfer_socket.RCVTIMEO = 10000
     master_data_handler_socket = context.socket(zmq.PUB)
     master_data_handler_socket.connect('tcp://{0}:{1}'.format(master_ip, master_file_transfer_port))
     return file_transfer_socket, master_data_handler_socket
@@ -50,6 +50,7 @@ def start_file_transfer(my_id, file_transfer_socket, master_data_handler_socket,
             success = upload_video(file_transfer_socket, file_name, videos_dir)
             status = {
                 'success': success,
+                'is_upload': True,
                 'file_name': file_name,
                 'id': my_id,
                 'port': local_file_transfer_port
@@ -57,6 +58,14 @@ def start_file_transfer(my_id, file_transfer_socket, master_data_handler_socket,
             master_data_handler_socket.send(pickle.dumps(status))
         else:
             download_video(file_transfer_socket, file_name, videos_dir)
+            status = {
+                'success': True,
+                'is_upload': True,
+                'file_name': file_name,
+                'id': my_id,
+                'port': local_file_transfer_port
+            }
+            master_data_handler_socket.send(pickle.dumps(status))
 
 
 def main():
