@@ -11,7 +11,7 @@ def initialize_busy_port_data_frame(data_keeprs, number_of_process_data_keeper):
     for i in range(0,data_keeprs):
         for j in range(6000,6000+number_of_process_data_keeper):
             temp.append(str(i))
-            temp2.append(j)
+            temp2.append(str(j))
     data = {
         'Port': temp2,
         'Data Keeper ID': temp,
@@ -67,11 +67,12 @@ def start_master_data_handler(ns, successful_check_port, busy_check_port, data_k
             flag=stat_upload['success']
             if flag:
                 file_name_data_frame = ns.df
-                file_name_data_frame = file_name_data_frame.append({'Data Keeper ID':stat_upload['id'],'File Name':stat_upload['file_name']},ignore_index=True)
+                if stat_upload['is_upload']:
+                    file_name_data_frame = file_name_data_frame.append({'Data Keeper ID':stat_upload['id'],'File Name':stat_upload['file_name']},ignore_index=True)
                 ns.df = file_name_data_frame
                 data_keeper_id=ns.df3[(ns.df3['Data Keeper ID']==stat_upload['id'])& (ns.df3['Port']==stat_upload['port'])].index
                 busy_port_data_frame = ns.df3
-                busy_port_data_frame.at[data_keeper_id,'Busy']=False
+                busy_port_data_frame.loc[data_keeper_id,'Busy']=False
                 ns.df3 = busy_port_data_frame
                 print("File Uploaded Successfully")
             else:
@@ -85,7 +86,7 @@ def start_master_data_handler(ns, successful_check_port, busy_check_port, data_k
             flag2=stat_replica['success']
             if flag2:
                 file_name_data_frame = ns.df
-                file_name_data_frame = file_name_data_frame.append({'Data Keeper ID':stat_replica['id'],'File Name':stat_replica['file_name']},ignore_index=True)
+                file_name_data_frame = file_name_data_frame.append({'Data Keeper ID':stat_replica['id'],'File Name':stat_replica['file_name']},ignore_index=False)
                 ns.df = file_name_data_frame
                 print("File Replicated Successfully")
             else:
@@ -98,7 +99,7 @@ def start_master_data_handler(ns, successful_check_port, busy_check_port, data_k
             busy_data_keeper=check_busy_socket.recv_pyobj(flags=zmq.NOBLOCK)
             data_keeper_id=ns.df3[(ns.df3['Data Keeper ID']==busy_data_keeper[0])& (ns.df3['Port']==busy_data_keeper[1])].index
             busy_port_data_frame = ns.df3
-            busy_port_data_frame.at[data_keeper_id,'Busy']=False
+            busy_port_data_frame.at[data_keeper_id,'Busy']=True
             ns.df3 = busy_port_data_frame
         except zmq.error.Again:
             pass
