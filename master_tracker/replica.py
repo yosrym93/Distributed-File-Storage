@@ -24,15 +24,8 @@ def replica(s, ns, replica_factor, replica_socket_to_keepers):
     # Convert alive IDs to numpy array
     alive = alive_keepers['Data Keeper ID']
     alive = np.array(alive)
-<<<<<<< Updated upstream
     unique_files = unique_files.tolist()
     for file in unique_files:
-=======
-
-    print(unique_files)
-    print(unique_files.shape)
-    for i in range(len(unique_files)):
->>>>>>> Stashed changes
         # Get unique file occurrences in keepers
         file_occurrences = merged_table[merged_table['File Name'] == file]
         # Count the number of replicas
