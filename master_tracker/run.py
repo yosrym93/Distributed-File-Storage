@@ -13,12 +13,13 @@ still_alive_port = '5000'
 successfully_check_port = '10000'
 busy_check_port = '9000'
 client_port = 5500
-data_keepers_count = 2
+data_keepers_count = 1
 process_number = 3
 master_replicate_port = '5001'
 replica_factor = 1
-data_keepers_ip = ["192.168.43.120"]
+data_keepers_ip = ["192.168.43.65"]
 client_ports_count = 1
+replicaPort='8000'
 
 
 if __name__ == '__main__':
@@ -27,7 +28,7 @@ if __name__ == '__main__':
 
     # Create Master data handler process
     data_handler = Process(target=start_master_data_handler,
-                           args=(ns, successfully_check_port, busy_check_port, data_keepers_count, process_number))
+                           args=(ns, successfully_check_port, busy_check_port, data_keepers_count, process_number,replicaPort))
     data_handler.start()
 
     # Creating Who Is Alive Process

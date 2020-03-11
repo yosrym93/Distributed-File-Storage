@@ -5,11 +5,11 @@ import sys
 import pickle
 
 
-def initialize_table(dataKeeprs, processNumber):
+def initialize_busy_port_data_frame(data_keeprs, number_of_process_data_keeper):
     temp=[]
     temp2=[]
-    for i in range(0,dataKeeprs):
-        for j in range(6000,6000+processNumber):
+    for i in range(0,data_keeprs):
+        for j in range(6000,6000+number_of_process_data_keeper):
             temp.append(str(i))
             temp2.append(j)
     data = {
@@ -19,73 +19,87 @@ def initialize_table(dataKeeprs, processNumber):
     }
     return data
 
+def initialize_sockets(successful_check_port,busy_check_port,replica_stat_port):
 
-def start_master_data_handler(ns, successfulCheckPort, busyCheckPort, dataKeeprs, processNumber):
-    print(f"Master data handler started, listening to busy checks on port {busyCheckPort}")
-    # Create Data Frames
-    data = {
+    # Define context to make a socket
+    context = zmq.Context()
+
+    #create sockets
+    uploaded_success_socket = context.socket(zmq.SUB) 
+    check_busy_socket = context.socket(zmq.PULL)
+    replica_success_socket = context.socket(zmq.SUB)
+
+    #set topic to pub/sub model
+    uploaded_success_socket.subscribe('')
+    replica_success_socket.subscribe('')
+
+    #bind sockets
+    uploaded_success_socket.bind ("tcp://*:%s"% successful_check_port)
+    check_busy_socket.bind("tcp://*:%s"% busy_check_port)
+    replica_success_socket.bind("tcp://*:%s"% replica_stat_port)
+
+    return uploaded_success_socket,check_busy_socket,replica_success_socket
+
+def create_data_frames(data_keeprs,number_process_data_keeper):
+    
+     # Create Data Frames
+    file_name_data_frame = {
         'Data Keeper ID': [],
         'File Name': []
     }
 
-    data2 = {
-        'Data Keeper ID': [],
-        'Alive': []
-    }
+    return pd.DataFrame(file_name_data_frame),pd.DataFrame(initialize_busy_port_data_frame(data_keeprs, number_process_data_keeper))
 
-    data3 = {
-        'Data Keeper ID': [],
-        'Port': [],
-        'Busy': []
-    }
-
+def start_master_data_handler(ns, successful_check_port, busy_check_port, data_keeprs, number_process_data_keeper,replica_stat_port):
+    
+    print(f"Master data handler started, listening to busy checks on port {busy_check_port}")
+    
+    # initialize socket
+    uploaded_success_socket,check_busy_socket,replica_success_socket=initialize_sockets(successful_check_port,busy_check_port,replica_stat_port)
+    
     # initilize table
-    ns.df = pd.DataFrame(data)
-    ns.df3 = pd.DataFrame(initialize_table(dataKeeprs, processNumber))
-
-    # Socket to talk to server
-    context = zmq.Context()
-
-    socket2 = context.socket(zmq.SUB) #need to be push / pull 
-    socket3 = context.socket(zmq.PULL)
-
-    socket2.subscribe('')
-
-    socket2.bind ("tcp://*:%s"% successfulCheckPort)
-    socket2.setsockopt(zmq.RCVTIMEO, 500)
-
-    socket3.bind("tcp://*:%s"% busyCheckPort)
-    socket3.setsockopt(zmq.RCVTIMEO, 500)
-
-    # Fill the table with data
+    ns.df ,ns.df3= create_data_frames(data_keeprs,number_process_data_keeper)
 
     while(True):
         
         # Check Successful upload
         try:
-            stat=pickle.loads(socket2.recv())
-            flag=stat['success']
+            stat_upload=pickle.loads(uploaded_success_socket.recv())
+            flag=stat_upload['success']
             if flag:
-                df = ns.df
-                df = df.append({'Data Keeper ID':stat['id'],'File Name':stat['file_name']},ignore_index=True)
-                ns.df = df
-                index_name=ns.df3[(ns.df3['Data Keeper ID']==stat['id'])& (ns.df3['Port']==stat['port'])].index
-                df = ns.df3
-                df.at[index_name,'Busy']=False
-                ns.df3 = df
+                file_name_data_frame = ns.df
+                file_name_data_frame = file_name_data_frame.append({'Data Keeper ID':stat_upload['id'],'File Name':stat_upload['file_name']},ignore_index=True)
+                ns.df = file_name_data_frame
+                data_keeper_id=ns.df3[(ns.df3['Data Keeper ID']==stat_upload['id'])& (ns.df3['Port']==stat_upload['port'])].index
+                busy_port_data_frame = ns.df3
+                busy_port_data_frame.at[data_keeper_id,'Busy']=False
+                ns.df3 = busy_port_data_frame
                 print("File Uploaded Successfully")
             else:
                 print("File Uploaded Unsuccessfully")
         except zmq.error.Again:
             pass
+        
+        # Check Successful replica
+        try:
+            stat_replica=pickle.loads(replica_success_socket.recv(flags=zmq.NOBLOCK))
+            flag2=stat_replica['success']
+            if flag2:
+                file_name_data_frame = ns.df
+                file_name_data_frame = file_name_data_frame.append({'Data Keeper ID':stat_replica['id'],'File Name':stat_replica['file_name']},ignore_index=True)
+                ns.df = file_name_data_frame
+                print("File Replicated Successfully")
+            else:
+                print("File Replicated Unsuccessfully")
+        except zmq.error.Again:
+            pass
 
         # Check Busy Ports
         try:
-            busyFlag=socket3.recv_pyobj()
-            index_name=ns.df3[(ns.df3['Data Keeper ID']==busyFlag[0])& (ns.df3['Port']==busyFlag[1])].index
-            df = ns.df3
-            df.at[index_name,'Busy']=False
-            ns.df3 = df
-            print("Recieve ",busyFlag[0],busyFlag[1])
+            busy_data_keeper=check_busy_socket.recv_pyobj(flags=zmq.NOBLOCK)
+            data_keeper_id=ns.df3[(ns.df3['Data Keeper ID']==busy_data_keeper[0])& (ns.df3['Port']==busy_data_keeper[1])].index
+            busy_port_data_frame = ns.df3
+            busy_port_data_frame.at[data_keeper_id,'Busy']=False
+            ns.df3 = busy_port_data_frame
         except zmq.error.Again:
             pass
