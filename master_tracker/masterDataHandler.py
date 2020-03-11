@@ -27,11 +27,10 @@ def initialize_sockets(successful_check_port,busy_check_port,replica_stat_port):
     #create sockets
     uploaded_success_socket = context.socket(zmq.SUB) 
     check_busy_socket = context.socket(zmq.PULL)
-    replica_success_socket = context.socket(zmq.SUB)
+    replica_success_socket = context.socket(zmq.PULL)
 
     #set topic to pub/sub model
     uploaded_success_socket.subscribe('')
-    replica_success_socket.subscribe('')
 
     #bind sockets
     uploaded_success_socket.bind ("tcp://*:%s"% successful_check_port)
@@ -64,7 +63,7 @@ def start_master_data_handler(ns, successful_check_port, busy_check_port, data_k
         
         # Check Successful upload
         try:
-            stat_upload=pickle.loads(uploaded_success_socket.recv())
+            stat_upload=pickle.loads(uploaded_success_socket.recv(flags=zmq.NOBLOCK))
             flag=stat_upload['success']
             if flag:
                 file_name_data_frame = ns.df
