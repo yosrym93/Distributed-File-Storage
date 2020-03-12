@@ -3,9 +3,12 @@ import sys
 import pickle
 import random
 
-def master_connection(context, master_link, file_name, UpDown):
+def master_connection(context, master_ip, file_name, UpDown, port_list):
     master_socket = context.socket(zmq.REQ)
-    master_socket.connect ("tcp://{link}".format(link = master_link))
+    for port in port_list:
+        print(port)
+        master_link = master_ip + ":" + str(port)
+        master_socket.connect ("tcp://{link}".format(link = master_link))
     master_socket.send_pyobj((file_name, UpDown))
     print("Request sent to master datahandler")
     #recieve port from master
@@ -33,9 +36,10 @@ def download(datakeeper_socket, file_name):
 def main():
     _, master_ip, master_port, ports_count, file_name, UpDown = sys.argv
     context = zmq.Context()
-    master_port = random.randrange(int(master_port), int(master_port) + int(ports_count))
-    master_link = master_ip + ":" + str(master_port)
-    datakeeper_link = master_connection(context, master_link, file_name, UpDown)
+    #connect to all master ports randomly
+    port_list = list(range(int(master_port), int(master_port) + int(ports_count)))
+    random.shuffle(port_list)
+    datakeeper_link = master_connection(context, master_ip, file_name, UpDown, port_list)
 
     if not datakeeper_link:
         print('No empty ports on the server')
