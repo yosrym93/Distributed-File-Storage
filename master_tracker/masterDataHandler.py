@@ -49,7 +49,7 @@ def create_data_frames(data_keeprs,number_process_data_keeper):
 
     return pd.DataFrame(file_name_data_frame),pd.DataFrame(initialize_busy_port_data_frame(data_keeprs, number_process_data_keeper))
 
-def start_master_data_handler(ns, successful_check_port, busy_check_port, data_keeprs, number_process_data_keeper,replica_stat_port):
+def start_master_data_handler(ns, successful_check_port, busy_check_port, data_keeprs, number_process_data_keeper,replica_stat_port,successful_upload_lock,busy_check_lock):
     
     print(f"Master data handler started, listening to busy checks on port {busy_check_port}")
     
@@ -66,15 +66,22 @@ def start_master_data_handler(ns, successful_check_port, busy_check_port, data_k
             stat_upload=pickle.loads(uploaded_success_socket.recv(flags=zmq.NOBLOCK))
             flag=stat_upload['success']
             if flag:
+                successful_upload_lock.acquire()
                 file_name_data_frame = ns.df
                 if stat_upload['is_upload']:
                     file_name_data_frame = file_name_data_frame.append({'Data Keeper ID':stat_upload['id'],'File Name':stat_upload['file_name']},ignore_index=True)
                 ns.df = file_name_data_frame
+                successful_upload_lock.release()
+                busy_check_lock.acquire()
                 data_keeper_id=ns.df3[(ns.df3['Data Keeper ID']==stat_upload['id'])& (ns.df3['Port']==stat_upload['port'])].index
                 busy_port_data_frame = ns.df3
                 busy_port_data_frame.loc[data_keeper_id,'Busy']=False
                 ns.df3 = busy_port_data_frame
-                print("File Uploaded Successfully")
+                busy_check_lock.release()
+                if stat_upload['is_upload']:
+                    print("File Uploaded Successfully")
+                else:
+                    print("File Downlaod Successfully")
             else:
                 print("File Uploaded Unsuccessfully")
         except zmq.error.Again:
@@ -85,9 +92,11 @@ def start_master_data_handler(ns, successful_check_port, busy_check_port, data_k
             stat_replica=pickle.loads(replica_success_socket.recv(flags=zmq.NOBLOCK))
             flag2=stat_replica['success']
             if flag2:
+                successful_upload_lock.acquire()
                 file_name_data_frame = ns.df
-                file_name_data_frame = file_name_data_frame.append({'Data Keeper ID':stat_replica['id'],'File Name':stat_replica['file_name']},ignore_index=False)
+                file_name_data_frame = file_name_data_frame.append({'Data Keeper ID':stat_replica['id'],'File Name':stat_replica['file_name']},ignore_index=True)
                 ns.df = file_name_data_frame
+                successful_upload_lock.release()
                 print("File Replicated Successfully")
             else:
                 print("File Replicated Unsuccessfully")
@@ -95,11 +104,15 @@ def start_master_data_handler(ns, successful_check_port, busy_check_port, data_k
             pass
 
         # Check Busy Ports
+        '''
         try:
             busy_data_keeper=check_busy_socket.recv_pyobj(flags=zmq.NOBLOCK)
+            busy_check_lock.acquire()
             data_keeper_id=ns.df3[(ns.df3['Data Keeper ID']==busy_data_keeper[0])& (ns.df3['Port']==busy_data_keeper[1])].index
             busy_port_data_frame = ns.df3
             busy_port_data_frame.at[data_keeper_id,'Busy']=True
             ns.df3 = busy_port_data_frame
+            busy_check_lock.release()
         except zmq.error.Again:
             pass
+        '''

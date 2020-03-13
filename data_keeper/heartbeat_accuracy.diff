@@ -1,0 +1,29 @@
+diff --git a/data_keeper/heartbeat.py b/data_keeper/heartbeat.py
+index a2b8c81..2ac298b 100644
+--- a/data_keeper/heartbeat.py
++++ b/data_keeper/heartbeat.py
+@@ -11,10 +11,11 @@ def init_socket(master_ip, master_heartbeat_port):
+     return master_heartbeat_socket
+ 
+ 
+-def send_heartbeat(scheduler, my_id, master_heartbeat_socket):
++def send_heartbeat(scheduler, my_id, master_heartbeat_socket, time_now):
+     master_heartbeat_socket.send_string(my_id)
+     # print('Heartbeat sent with id {}'.format(my_id))
+-    scheduler.enter(1, 0, send_heartbeat, argument=(scheduler, my_id, master_heartbeat_socket))
++    scheduler.enterabs(time_now + 1, 0, send_heartbeat,
++                       argument=(scheduler, my_id, master_heartbeat_socket, time_now + 1))
+ 
+ 
+ def main():
+@@ -25,7 +26,9 @@ def main():
+     print('Heartbeat process started, sending to master data handler tcp://{}:{}'.format(master_ip, heartbeat_port))
+     master_heartbeat_socket = init_socket(master_ip, heartbeat_port)
+     scheduler = sched.scheduler(time.time, time.sleep)
+-    scheduler.enter(1, 0, send_heartbeat, argument=(scheduler, my_id, master_heartbeat_socket))
++    time_now = time.time()
++    scheduler.enterabs(time_now + 1, 0, send_heartbeat,
++                       argument=(scheduler, my_id, master_heartbeat_socket, time_now + 1))
+     scheduler.run()
+ 
+ 

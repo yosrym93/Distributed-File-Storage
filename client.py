@@ -8,6 +8,7 @@ def master_connection(context, master_link, file_name, UpDown):
     master_socket.connect ("tcp://{link}".format(link = master_link))
     master_socket.send_pyobj((file_name, UpDown))
     print("Request sent to master datahandler")
+    print(" This request is through link %s",master_link)
     #recieve port from master
     datakeeper_link = master_socket.recv_string()
     print("datakeeper link: " + datakeeper_link)
@@ -33,11 +34,21 @@ def download(datakeeper_socket, file_name):
 def main():
     _, master_ip, master_port, ports_count, file_name, UpDown = sys.argv
     context = zmq.Context()
-    master_port = random.randrange(int(master_port), int(master_port) + int(ports_count))
-    master_link = master_ip + ":" + str(master_port)
-    datakeeper_link = master_connection(context, master_link, file_name, UpDown)
-
-    if not datakeeper_link:
+    checked_ports_list=[]
+    get_port_flag=False
+    print(ports_count)
+    while len(checked_ports_list)!=(int(ports_count)):
+        current_port=random.randint(int(master_port),int(master_port) + int(ports_count)-1)
+        if current_port not in checked_ports_list:
+            print(current_port)
+            checked_ports_list.append(current_port)
+            print(len(checked_ports_list))
+            master_link = master_ip + ":" + str(current_port)
+            datakeeper_link = master_connection(context, master_link, file_name, UpDown)
+            if  datakeeper_link:
+                get_port_flag=True 
+                break
+    if not get_port_flag:
         print('No empty ports on the server')
         return
     datakeeper_socket = datakeeper_connection(context, datakeeper_link)

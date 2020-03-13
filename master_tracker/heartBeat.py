@@ -29,7 +29,7 @@ def initialize_socket(still_alive_port):
     return heart_beat_socket
 
 
-def whoIsAlive(ns,data_keeprs,still_alive_port):
+def whoIsAlive(ns,data_keeprs,still_alive_port,heart_beat_lock):
     
     global timeout
     print(f"Master heartbeat job started, listening to data handlers on port {still_alive_port}")
@@ -48,13 +48,14 @@ def whoIsAlive(ns,data_keeprs,still_alive_port):
     ns.df2 = pd.DataFrame({'Data Keeper ID': [str(i) for i in range(0, data_keeprs)], 'Alive': alive_list_state})
     
     # Periodicly Check who is alive every 1 sec
+    prev=0
     while True:
 
         # Check  who is alive
         alive_list_state = [False]*data_keeprs
 
         # bind signal every 1 sec
-        signal.alarm(1)
+        signal.alarm(2)
         
         while not timeout:
             try:
@@ -64,10 +65,14 @@ def whoIsAlive(ns,data_keeprs,still_alive_port):
             except zmq.error.Again:
                 continue
         timeout = False
-        print("%d Data Keepers are alive " % sum(alive_list_state))
+        if prev != sum(alive_list_state):
+            print("%d Data Keepers are alive " % sum(alive_list_state))
+            prev=sum(alive_list_state)
         
-        #update date frame with datakeeprs state
+        # Update date frame with datakeeprs state
+        heart_beat_lock.acquire()
         alive_data_frame = ns.df2
         alive_data_frame.update({'Alive': alive_list_state})
         ns.df2 = alive_data_frame
+        heart_beat_lock.release()
 
