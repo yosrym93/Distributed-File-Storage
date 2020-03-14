@@ -3,6 +3,7 @@ import pandas as pd
 
 def client_connection(socket):
     #recieve request from client
+    print("befor reciving client request")
     file_name, UpDown  = socket.recv_pyobj()
     print("file name :",file_name)
     if(UpDown == "0"):
@@ -12,7 +13,8 @@ def client_connection(socket):
     return file_name, UpDown
     
 def upload(df2, df3, machine_check):
-    table = df2.join(df3.set_index('Data Keeper ID'), on='Data Keeper ID')
+    table = df2.join(df3.set_index('Data Keeper ID'), on='Data Keeper ID', sort=True)
+    table.reset_index(inplace = True)
     busy_ports = table[table['Busy'] == True].index
     dead_nodes = table[table['Alive'] == False].index
     table.drop(busy_ports, inplace = True)
@@ -64,16 +66,15 @@ def start_client_ports(client_port, datahandler_port, ns, datakeepers_ip,busy_ch
             #datahandler_socket.send_pyobj((random_row['Data Keeper ID'].item(), random_row['Port'].item()))
             print("There is available machine at port %s",client_port)
             busy_check_lock.acquire()
-            data_keeper_index = ns.df3[(ns.df3['Data Keeper ID'] == random_row['Data Keeper ID'].item()) & (ns.df3['Port'] == random_row['Port'].item())].index
+            data_keeper_index = ns.df3[(ns.df3['Data Keeper ID'] == random_row['Data Keeper ID'].iloc[0]) & (ns.df3['Port'] == random_row['Port'].iloc[0])].index
             busy_port_data_frame = ns.df3
             busy_port_data_frame.loc[data_keeper_index, 'Busy'] = True
             ns.df3 = busy_port_data_frame
             busy_check_lock.release()
-            datakeeper_ip = datakeepers_ip[int(random_row['Data Keeper ID'].item())]
-            datakeeper_link = datakeeper_ip + ":" + str(random_row['Port'].item())
+            datakeeper_ip = datakeepers_ip[int(random_row['Data Keeper ID'].iloc[0])]
+            datakeeper_link = datakeeper_ip + ":" + str(random_row['Port'].iloc[0])
             client_socket.send_string(datakeeper_link)
             print("Data sent to datahandler and client")
         else:
             print("No empty machine :)")
             client_socket.send_string("")
-        #time.sleep(1)

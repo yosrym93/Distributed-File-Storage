@@ -29,7 +29,7 @@ def initialize_socket(still_alive_port):
     return heart_beat_socket
 
 
-def whoIsAlive(ns,data_keeprs,still_alive_port,heart_beat_lock):
+def whoIsAlive(ns,data_keeprs,still_alive_port):
     
     global timeout
     print(f"Master heartbeat job started, listening to data handlers on port {still_alive_port}")
@@ -70,9 +70,7 @@ def whoIsAlive(ns,data_keeprs,still_alive_port,heart_beat_lock):
             prev=sum(alive_list_state)
         
         # Update date frame with datakeeprs state
-        heart_beat_lock.acquire()
         alive_data_frame = ns.df2
         alive_data_frame.update({'Alive': alive_list_state})
         ns.df2 = alive_data_frame
-        heart_beat_lock.release()
 

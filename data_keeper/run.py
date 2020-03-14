@@ -6,7 +6,7 @@ import shutil
 videos_dir = 'videos'
 id = '0'
 data_keepers_count = '1'
-master_ip = '192.168.1.2'
+master_ip = '192.168.43.148'
 master_replicate_port = '5001'
 master_heartbeat_port = '5000'
 master_file_transfer_port = '10000'
@@ -15,7 +15,7 @@ file_transfer_ports_start = 6000  # Integer
 replicate_port = '7000'
 master_replicate_notify_port = '8000'
 data_keepers_ips = [
-    '192.168.1.2',
+    '192.168.43.148',
 ]
 
 if __name__ == '__main__':

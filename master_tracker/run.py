@@ -17,7 +17,7 @@ data_keepers_count = 1
 process_number = 3
 master_replicate_port = '5001'
 replica_factor = 2
-data_keepers_ip = ["192.168.1.2"]
+data_keepers_ip = ["192.168.43.148"]
 client_ports_count = 2
 replicaPort='8000'
 
@@ -26,7 +26,6 @@ if __name__ == '__main__':
     mgr = Manager()
     ns = mgr.Namespace()
 
-    heart_beat_lock=Lock()
     successful_upload_lock=Lock()
     busy_check_lock=Lock()
 
@@ -36,11 +35,11 @@ if __name__ == '__main__':
     data_handler.start()
 
     # Creating Who Is Alive Process
-    whoIsAliveProcess = Process(target=whoIsAlive, args=(ns, str(data_keepers_count), str(still_alive_port),heart_beat_lock))
+    whoIsAliveProcess = Process(target=whoIsAlive, args=(ns, str(data_keepers_count), str(still_alive_port)))
     whoIsAliveProcess.start()
 
     # Creating Replica Process
-    replicaProcess = Process(target=replica_start, args=(ns, str(master_replicate_port), str(replica_factor),successful_upload_lock,heart_beat_lock))
+    replicaProcess = Process(target=replica_start, args=(ns, str(master_replicate_port), str(replica_factor),successful_upload_lock))
     replicaProcess.start()
 
     # Creating Ports to Communicate

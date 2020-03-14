@@ -40,9 +40,7 @@ def main():
     while len(checked_ports_list)!=(int(ports_count)):
         current_port=random.randint(int(master_port),int(master_port) + int(ports_count)-1)
         if current_port not in checked_ports_list:
-            print(current_port)
             checked_ports_list.append(current_port)
-            print(len(checked_ports_list))
             master_link = master_ip + ":" + str(current_port)
             datakeeper_link = master_connection(context, master_link, file_name, UpDown)
             if  datakeeper_link:
