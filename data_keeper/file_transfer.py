@@ -60,7 +60,7 @@ def start_file_transfer(my_id, file_transfer_socket, master_data_handler_socket,
             download_video(file_transfer_socket, file_name, videos_dir)
             status = {
                 'success': True,
-                'is_upload': True,
+                'is_upload': False,
                 'file_name': file_name,
                 'id': my_id,
                 'port': local_file_transfer_port
