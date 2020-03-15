@@ -49,7 +49,7 @@ def who_is_alive(ns, data_keepers_count, still_alive_port):
         alive_list_state = [False] * data_keepers_count
 
         # bind signal every 1 sec
-        signal.alarm(1.1)
+        signal.alarm(1)
         
         while not timeout:
             try:

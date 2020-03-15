@@ -1,15 +1,17 @@
 # Parameters
 videos_dir = 'videos'
 data_keeper_id = '0'
-data_keepers_count = 2
-file_transfer_ports_count = 2  # Integer
+data_keepers_count = 3
+file_transfer_ports_count = 1  # Integer
 replica_factor = 2
 client_ports_count = 2
 
 # IPs
 master_ip = '25.73.138.51'
 data_keepers_ips = [
-    '25.73.138.51'
+    '25.73.138.51',
+    '25.71.218.34',
+    '25.97.17.121'
 ]
 
 # Master ports

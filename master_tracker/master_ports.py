@@ -1,17 +1,17 @@
 import zmq
 import pandas as pd
 
+
 def client_connection(socket):
-    #recieve request from client
-    print("befor reciving client request")
-    file_name, UpDown  = socket.recv_pyobj()
+    file_name, UpDown = socket.recv_pyobj()
     print("file name :",file_name)
-    if(UpDown == "0"):
+    if UpDown == "0":
         print("Upload request is recieved")
     else:
         print("Download request is recieved")
     return file_name, UpDown
-    
+
+
 def upload(alive_data_keepers_table, busy_ports_table, machine_check):
     table = alive_data_keepers_table.join(busy_ports_table.set_index('Data Keeper ID'), on='Data Keeper ID', sort=True)
     table.reset_index(inplace = True)
@@ -20,22 +20,25 @@ def upload(alive_data_keepers_table, busy_ports_table, machine_check):
     table.drop(busy_ports, inplace = True)
     table.drop(dead_nodes, inplace = True)
     random_row = pd.DataFrame()
-    if(not table.empty):
+    if not table.empty:
         random_row = table.sample()
     else:
         machine_check = False
     return random_row, machine_check
-    
+
+
 def download(files_table, alive_data_keepers_table, busy_ports_table, machine_check, file_name):
     table = alive_data_keepers_table.join(busy_ports_table.set_index('Data Keeper ID'), on='Data Keeper ID')
     table = table.join(files_table.set_index('Data Keeper ID'), on='Data Keeper ID')
     table = table[table['File Name'] == file_name]
     busy_ports = table[table['Busy'] == True].index
     dead_nodes = table[table['Alive'] == False].index
-    table.drop(busy_ports, inplace = True)
-    table.drop(dead_nodes, inplace = True)
+    replicating_files = table[table['Is Replicating'] == True].index
+    table.drop(busy_ports, inplace=True)
+    table.drop(dead_nodes, inplace=True)
+    table.drop(replicating_files, inplace=True)
     random_row = pd.DataFrame()
-    if(not table.empty):
+    if not table.empty:
         random_row = table.sample()
     else:
         machine_check = False
