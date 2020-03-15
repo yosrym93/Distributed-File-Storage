@@ -46,7 +46,7 @@ def replica(s, ns, replica_factor, replica_socket_to_keepers, files_table_lock):
                 receivers = list(np.random.choice(free, needed_to_be_sent))
                 # Send from any source
                 sender = occupied[0]
-                print('from  ',sender, 'to  ', receivers, 'file_name  ', file)
+                print('from  ', sender, 'to  ', receivers, 'file_name  ', file)
                 message = {'from': sender, 'to': receivers, 'file_name': file}
                 replica_socket_to_keepers.send(pickle.dumps(message))
                 for receiver in receivers:

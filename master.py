@@ -6,7 +6,6 @@ from master_tracker.replica import replica_start
 from master_tracker.master_ports import start_client_ports
 from master_tracker.heartbeat import who_is_alive
 from master_tracker.master_data_handler import start_master_data_handler
-from master_tracker.monitor import monitor_data_frame
 
 
 if __name__ == '__main__':
@@ -18,8 +17,9 @@ if __name__ == '__main__':
 
     # Create Master data handler process
     data_handler = Process(target=start_master_data_handler,
-                           args=(ns, master_file_transfer_port, data_keepers_count, file_transfer_ports_count,
-                                 master_replicate_notify_port, busy_check_lock, files_table_lock))
+                           args=(ns, master_file_transfer_port, data_keepers_count, file_transfer_ports_start,
+                                 file_transfer_ports_count, master_replicate_notify_port, busy_check_lock,
+                                 files_table_lock))
     data_handler.start()
 
     # Creating Who Is Alive Process
@@ -37,9 +37,15 @@ if __name__ == '__main__':
         masterPortProcess.start()
 
     # Create Moiintor Process that 
-    monitor_data_frame=Process(target=monitor_data_frame,args=(ns,))
-    monitor_data_frame.start()
+    # monitor_data_frame=Process(target=monitor_data_frame,args=(ns,))
+    # monitor_data_frame.start()
 
     # Kill Processes after pressing any key.
-    input('Press any key to exit..\n')
-    os.killpg(0, signal.SIGKILL)
+    while True:
+        data = input('Press p to print tables or any key to exit..\n')
+        if data == 'p':
+            print(ns.files_table)
+            print(ns.busy_ports_table)
+            print(ns.alive_data_keepers_table)
+        else:
+            os.killpg(0, signal.SIGKILL)

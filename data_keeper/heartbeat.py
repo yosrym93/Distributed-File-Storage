@@ -14,8 +14,8 @@ def init_socket(master_ip, master_heartbeat_port):
 def send_heartbeat(scheduler, my_id, master_heartbeat_socket, time_now):
     master_heartbeat_socket.send_string(my_id)
     # print('Heartbeat sent with id {}'.format(my_id))
-    scheduler.enterabs(time_now + 1, 0, send_heartbeat,
-                       argument=(scheduler, my_id, master_heartbeat_socket, time_now + 1))
+    scheduler.enterabs(time_now + 0.9, 0, send_heartbeat,
+                       argument=(scheduler, my_id, master_heartbeat_socket, time_now + 0.9))
 
 
 def main():
@@ -27,8 +27,8 @@ def main():
     master_heartbeat_socket = init_socket(master_ip, heartbeat_port)
     scheduler = sched.scheduler(time.time, time.sleep)
     time_now = time.time()
-    scheduler.enterabs(time_now + 1, 0, send_heartbeat,
-                       argument=(scheduler, my_id, master_heartbeat_socket, time_now + 1))
+    scheduler.enterabs(time_now + 0.9, 0, send_heartbeat,
+                       argument=(scheduler, my_id, master_heartbeat_socket, time_now + 0.9))
     scheduler.run()
 
 

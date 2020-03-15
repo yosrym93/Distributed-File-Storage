@@ -1,21 +1,19 @@
 import zmq
-import numpy as np
 import pandas as pd
-import sys
 import pickle
 
 
-def initialize_busy_port_data_frame(data_keeprs, number_of_process_data_keeper):
-    temp=[]
-    temp2=[]
-    for i in range(0,data_keeprs):
-        for j in range(6000,6000+number_of_process_data_keeper):
-            temp.append(str(i))
-            temp2.append(str(j))
+def initialize_busy_port_data_frame(data_keepers_count, data_keepers_ports_start, number_of_process_data_keeper):
+    data_keepers_ids = []
+    ports = []
+    for i in range(data_keepers_count):
+        for j in range(data_keepers_ports_start, data_keepers_ports_start + number_of_process_data_keeper):
+            data_keepers_ids.append(str(i))
+            ports.append(str(j))
     data = {
-        'Port': temp2,
-        'Data Keeper ID': temp,
-        'Busy': len(temp)*[False]
+        'Port': ports,
+        'Data Keeper ID': data_keepers_ids,
+        'Busy': len(data_keepers_ids)*[False]
     }
     return data
 
@@ -32,13 +30,13 @@ def initialize_sockets(successful_check_port, replica_stat_port):
     uploaded_success_socket.subscribe('')
 
     # bind sockets
-    uploaded_success_socket.bind ("tcp://*:%s"% successful_check_port)
-    replica_success_socket.bind("tcp://*:%s"% replica_stat_port)
+    uploaded_success_socket.bind("tcp://*:%s" % successful_check_port)
+    replica_success_socket.bind("tcp://*:%s" % replica_stat_port)
 
     return uploaded_success_socket, replica_success_socket
 
 
-def create_data_frames(data_keeprs,number_process_data_keeper):
+def create_data_frames(data_keeprs, data_keepers_ports_start, number_process_data_keeper):
     # Create Data Frames
     file_name_data_frame = {
         'Data Keeper ID': [],
@@ -46,18 +44,20 @@ def create_data_frames(data_keeprs,number_process_data_keeper):
         'Is Replicating': []
     }
 
-    return pd.DataFrame(file_name_data_frame),pd.DataFrame(initialize_busy_port_data_frame(data_keeprs, number_process_data_keeper))
+    return pd.DataFrame(file_name_data_frame), \
+        pd.DataFrame(initialize_busy_port_data_frame(data_keeprs, data_keepers_ports_start, number_process_data_keeper))
 
 
-def start_master_data_handler(ns, successful_check_port, data_keeprs, number_process_data_keeper,replica_stat_port,
-                              busy_check_lock, files_table_lock):
+def start_master_data_handler(ns, successful_check_port, data_keepers_count, data_keepers_ports_start,
+                              number_process_data_keeper, replica_stat_port, busy_check_lock, files_table_lock):
     print('Master data handler started')
     
     # initialize socket
-    uploaded_success_socket, replica_success_socket=initialize_sockets(successful_check_port, replica_stat_port)
+    uploaded_success_socket, replica_success_socket = initialize_sockets(successful_check_port, replica_stat_port)
     
-    # initilize table
-    ns.files_table, ns.busy_ports_table = create_data_frames(data_keeprs,number_process_data_keeper)
+    # initialize table
+    ns.files_table, ns.busy_ports_table = create_data_frames(
+        data_keepers_count, data_keepers_ports_start, number_process_data_keeper)
 
     while True:
         # Check Successful upload
@@ -80,15 +80,15 @@ def start_master_data_handler(ns, successful_check_port, data_keeprs, number_pro
                 data_keeper_id = ns.busy_ports_table[(ns.busy_ports_table['Data Keeper ID'] == stat_upload['id']) &
                                                      (ns.busy_ports_table['Port'] == stat_upload['port'])].index
                 busy_port_data_frame = ns.busy_ports_table
-                busy_port_data_frame.loc[data_keeper_id,'Busy']=False
+                busy_port_data_frame.loc[data_keeper_id, 'Busy'] = False
                 ns.busy_ports_table = busy_port_data_frame
                 busy_check_lock.release()
                 if stat_upload['is_upload']:
                     print("File Uploaded Successfully")
                 else:
-                    print("File Downlaod Successfully")
+                    print("File Downloaded Successfully")
             else:
-                print("File Uploaded Unsuccessfully")
+                print("Operation failed")
         except zmq.error.Again:
             pass
         
