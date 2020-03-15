@@ -56,6 +56,7 @@ def start_client_ports(client_port, datahandler_port, ns, datakeepers_ip,busy_ch
         file_name, UpDown = client_connection(client_socket)
         machine_check = True
 
+        busy_check_lock.acquire()
         if(UpDown == "0"):
             random_row, machine_check = upload(ns.df2, ns.df3, machine_check)
         else:
@@ -65,7 +66,6 @@ def start_client_ports(client_port, datahandler_port, ns, datakeepers_ip,busy_ch
         if(machine_check):
             #datahandler_socket.send_pyobj((random_row['Data Keeper ID'].item(), random_row['Port'].item()))
             print("There is available machine at port %s",client_port)
-            busy_check_lock.acquire()
             data_keeper_index = ns.df3[(ns.df3['Data Keeper ID'] == random_row['Data Keeper ID'].iloc[0]) & (ns.df3['Port'] == random_row['Port'].iloc[0])].index
             busy_port_data_frame = ns.df3
             busy_port_data_frame.loc[data_keeper_index, 'Busy'] = True
@@ -76,5 +76,6 @@ def start_client_ports(client_port, datahandler_port, ns, datakeepers_ip,busy_ch
             client_socket.send_string(datakeeper_link)
             print("Data sent to datahandler and client")
         else:
+            busy_check_lock.release()
             print("No empty machine :)")
             client_socket.send_string("")
