@@ -10,7 +10,6 @@ def init_sockets(master_ip, master_replicate_port, local_replicate_port, master_
     master_replicate_socket.connect('tcp://{0}:{1}'.format(master_ip, master_replicate_port))
     receive_socket = context.socket(zmq.PAIR)
     receive_socket.bind('tcp://*:{}'.format(local_replicate_port))
-    #receive_socket.RCVTIMEO=5000
     send_socket = context.socket(zmq.PAIR)
     master_notify_socket = context.socket(zmq.PUSH)
     master_notify_socket.connect('tcp://{0}:{1}'.format(master_ip, master_notify_port))

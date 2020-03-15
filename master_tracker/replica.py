@@ -5,11 +5,10 @@ import time
 import numpy as np
 
 
-def replica(s, ns, replica_factor, replica_socket_to_keepers,successful_upload_lock):
+def replica(s, ns, replica_factor, replica_socket_to_keepers):
     # Get a table with column values data keeper id, filename and alive status
-    successful_upload_lock.acquire()
-    merged_table = ns.df.join(ns.df2.set_index('Data Keeper ID'), on='Data Keeper ID')
-    successful_upload_lock.release()
+    merged_table = ns.files_table.join(ns.alive_data_keepers_table.set_index('Data Keeper ID'), on='Data Keeper ID')
+    merged_table.reset_index(inplace=True)
     # Get names of indexes for which column Alive is False
     index_names = merged_table[merged_table['Alive'] == False].index
     # Delete these row indexes from dataFrame
@@ -18,9 +17,9 @@ def replica(s, ns, replica_factor, replica_socket_to_keepers,successful_upload_l
     unique_files = merged_table['File Name'].unique()
     # Get alive data keepers
     # Get names of indexes for which column Alive is False
-    index_names = ns.df2[ns.df2['Alive'] == False].index
+    index_names = ns.alive_data_keepers_table[ns.alive_data_keepers_table['Alive'] == False].index
     # Delete these row indexes from dataFrame
-    alive_keepers = ns.df2
+    alive_keepers = ns.alive_data_keepers_table
     alive_keepers.drop(index_names, inplace=True)
     # Convert alive IDs to numpy array
     alive = alive_keepers['Data Keeper ID']
@@ -51,11 +50,11 @@ def replica(s, ns, replica_factor, replica_socket_to_keepers,successful_upload_l
                 message = {'from': sender, 'to': receiver, 'file_name': file}
                 replica_socket_to_keepers.send(pickle.dumps(message))
     # Run scheduler after another 5 seconds
-    s.enter(5, 0, replica, argument=(s, ns, replica_factor,replica_socket_to_keepers,successful_upload_lock))
+    s.enter(5, 0, replica, argument=(s, ns, replica_factor,replica_socket_to_keepers))
 
 
 # Start function 
-def replica_start(ns, port_replica, replica_factor,successful_upload_lock):
+def replica_start(ns, port_replica, replica_factor):
     print(f"Master replicate job started, sending jobs to data keepers using port {port_replica}")
     # Setup a socket between master and data keepers
     context = zmq.Context()
@@ -64,5 +63,5 @@ def replica_start(ns, port_replica, replica_factor,successful_upload_lock):
     replica_socket_to_keepers.bind("tcp://*:" + port_replica)
     # Create scheduler that runs periodically every 5 seconds to check if any file needs to be replicated
     s = sched.scheduler(time.time, time.sleep)
-    s.enter(5, 0, replica, argument=(s, ns, int(replica_factor),replica_socket_to_keepers,successful_upload_lock))
+    s.enter(5, 0, replica, argument=(s, ns, int(replica_factor),replica_socket_to_keepers))
     s.run()
