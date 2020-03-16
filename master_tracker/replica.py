@@ -42,6 +42,7 @@ def replica(s, ns, replica_factor, replica_socket_to_keepers, files_table_lock):
             else:
                 # Calculate the number of keepers we need to send to them
                 needed_to_be_sent = replica_factor - count
+                needed_to_be_sent = min(needed_to_be_sent, free.size)
                 # Randomize the IDs
                 receivers = list(np.random.choice(free, needed_to_be_sent))
                 # Send from any source
