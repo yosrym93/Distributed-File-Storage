@@ -7,16 +7,16 @@ upload = '0'
 download = '1'
 
 
-def master_connection(context, master_ip, file_name, UpDown, port_list):
+def master_connection(context, master_ip, file_name, transfer_mode, port_list):
     master_socket = context.socket(zmq.REQ)
     for port in port_list:
-        print(port)
         master_link = master_ip + ":" + str(port)
         master_socket.connect("tcp://{link}".format(link=master_link))
+        print('Connected to {}'.format(master_link))
 
-    master_socket.send_pyobj((file_name, UpDown))
+    master_socket.send_pyobj((file_name, transfer_mode))
     print("Request sent to master data handler")
-    # recieve port from master
+    # receive port from master
     data_keeper_link = master_socket.recv_string()
     print("data keeper link: " + data_keeper_link)
     return data_keeper_link
@@ -52,12 +52,12 @@ def main():
     data_keeper_link = master_connection(context, master_ip, file_name, transfer_mode, port_list)
 
     if not data_keeper_link:
-        print('No empty ports on the server')
+        print('No empty ports on the server or file does not exist')
         return
     data_keeper_socket = data_keeper_connection(context, data_keeper_link)
     # send request to data keeper
     data_keeper_socket.send(pickle.dumps((file_name, transfer_mode)))
-    if transfer_mode == upload_file:
+    if transfer_mode == upload:
         upload_file(data_keeper_socket, file_name)
     else:
         download_file(data_keeper_socket, file_name)

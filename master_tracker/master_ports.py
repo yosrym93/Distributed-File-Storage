@@ -8,7 +8,7 @@ download = '1'
 
 def client_connection(socket):
     file_name, transfer_mode = socket.recv_pyobj()
-    if transfer_mode == upload_file:
+    if transfer_mode == upload:
         print("Upload request received, file name: {}".format(file_name))
     else:
         print("Download request received, file name: {}".format(file_name))
@@ -54,7 +54,7 @@ def start_client_ports(client_port, ns, data_keepers_ip, busy_check_lock):
         machine_check = True
 
         busy_check_lock.acquire()
-        if transfer_mode == upload_file:
+        if transfer_mode == upload:
             random_row, machine_check = upload_file(ns.alive_data_keepers_table, ns.busy_ports_table, machine_check)
         else:
             random_row, machine_check = download_file(
@@ -76,5 +76,5 @@ def start_client_ports(client_port, ns, data_keepers_ip, busy_check_lock):
             client_socket.send_string(datakeeper_link)
         else:
             busy_check_lock.release()
-            print("No empty machine :)")
+            print("No empty machine or file does not exist :)")
             client_socket.send_string("")
