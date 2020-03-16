@@ -24,7 +24,8 @@ def start_replicate_job(my_id, data_keepers_replicate_addresses, master_replicat
             send_video(replicate_request['file_name'], replicate_request['to'],
                        data_keepers_replicate_addresses, send_socket, videos_dir)
         elif my_id in replicate_request['to']:
-            success = receive_video(replicate_request['file_name'], receive_socket, videos_dir)
+            success = receive_video(
+                replicate_request['file_name'], receive_socket, videos_dir, replicate_request['from'])
             status = {
                 'success': success,
                 'file_name': replicate_request['file_name'],
@@ -34,12 +35,12 @@ def start_replicate_job(my_id, data_keepers_replicate_addresses, master_replicat
             print('Notified the master of the replication job.')
 
 
-def send_video(file_name, to, data_keepers_replicate_addresses, socket, videos_dir):
-    print('Starting replicate job, sending video..')
+def send_video(file_name, receivers_ids, data_keepers_replicate_addresses, socket, videos_dir):
+    print('Starting replicate job, sending video to data keeper(s) {}..'.format(receivers_ids))
     path = videos_dir + '/' + file_name
     with open(path, 'rb') as video_file:
         video_data = video_file.read()
-    for data_keeper_id in to:
+    for data_keeper_id in receivers_ids:
         address = 'tcp://' + data_keepers_replicate_addresses[int(data_keeper_id)]
         socket.connect(address)
         socket.send(pickle.dumps(video_data))
@@ -47,9 +48,9 @@ def send_video(file_name, to, data_keepers_replicate_addresses, socket, videos_d
     print('Video sent.')
 
 
-def receive_video(file_name, socket, videos_dir):
+def receive_video(file_name, socket, videos_dir, sender_id):
     try:
-        print('Starting replicate job, receiving video..')
+        print('Starting replicate job, receiving video from data keeper {}..'.format(sender_id))
         video_data = pickle.loads(socket.recv())
         path = videos_dir + '/' + file_name
         with open(path, 'wb') as video_file:
