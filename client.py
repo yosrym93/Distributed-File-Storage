@@ -13,6 +13,7 @@ def master_connection(context, master_ip, file_name, UpDown, port_list):
         print(port)
         master_link = master_ip + ":" + str(port)
         master_socket.connect("tcp://{link}".format(link=master_link))
+
     master_socket.send_pyobj((file_name, UpDown))
     print("Request sent to master data handler")
     # recieve port from master
@@ -44,6 +45,7 @@ def download_file(data_keeper_socket, file_name):
 def main():
     _, master_ip, master_port, ports_count, file_name, transfer_mode = sys.argv
     context = zmq.Context()
+
     # connect to all master ports randomly
     port_list = list(range(int(master_port), int(master_port) + int(ports_count)))
     random.shuffle(port_list)
